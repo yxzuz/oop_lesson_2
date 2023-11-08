@@ -105,10 +105,52 @@ my_DB.insert(table4)
 my_DB.insert(table5)
 my_table1 = my_DB.search('cities')
 my_table3 = my_DB.search('players')
-print(my_table3.table_name,my_table3.table)
+# print(my_table3.table_name,my_table3.table)
 
 
+#player on a team with “ia” in the team name played less than 200 minutes and made more than 100 passes?
+# for index in range(len(players)):
+#     # for items in range(len(players[index])):
+#     int(players[index]['passes'])
+#     int(players[index]['minutes'])
+    # for key in range(len(index[table3])):
+    #     int(table3[key]['passes'])
 
+
+#player on a team with “ia” in the team name played less than 200 minutes and made more than 100 passes?
+filtered_table3 = table3.filter(lambda x:int(x['passes']) > 100).filter(lambda x:int(x['minutes']) < 200).filter(lambda x:'ia' in x['team'])
+print(type(filtered_table3))
+
+#Select to display the player surname, team, and position
+
+# print("Test select: only displaying two fields, surname, team, and position
+my_filtered_table3_selected = filtered_table3.select(['surname', 'team', 'position'])
+print(my_filtered_table3_selected)
+print()
+
+
+#The average number of games played for teams ranking below 10 versus teams ranking above or equal 10
+rank_below_ten = table4.filter(lambda x: int(x['ranking']) < 10)
+# print(rank_below_ten)
+avg1 = rank_below_ten.aggregate(lambda x: sum(x)/len(x), 'ranking')
+print('Avg ranking < 10: ', avg1)
+
+rank_ten_or_more = table4.filter(lambda x:int(x['ranking']) >= 10)
+avg2 = rank_ten_or_more.aggregate(lambda x: sum(x)/len(x), 'ranking')
+print('Avg ranking >= 10: ', avg2)
+
+#The average number of passes made by forwards versus by midfielders
+
+#join table
+
+players_ext = table3.join(table4, 'team')
+print(players_ext)
+# avg_by_forwards
+print('forward avg:', players_ext.filter(lambda x:x['position'] == 'forward').aggregate(lambda x: sum(x)/len(x), 'passes'))
+
+
+# avg_by_mid
+print('mid avg:', players_ext.filter(lambda x:x['position'] == 'midfielder').aggregate(lambda x: sum(x)/len(x), 'passes'))
 
 
 
