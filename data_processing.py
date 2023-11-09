@@ -34,6 +34,7 @@ with open(os.path.join(__location__, 'Titanic.csv')) as f:
         titanic.append(dict(r))
 # NOTE we can use 'team' key to join tables
 
+
 class DB:
     def __init__(self):
         self.database = []  # tables will be inserted here
@@ -46,8 +47,11 @@ class DB:
             if table.table_name == table_name:
                 return table
         return None
-    
+
+
 import copy
+
+
 class Table:
     def __init__(self, table_name, table):
         self.table_name = table_name
@@ -90,6 +94,7 @@ class Table:
     def __str__(self):
         return self.table_name + ':' + str(self.table)
 
+
 #  create tables from data sets
 table1 = Table('cities', cities)
 table2 = Table('countries', countries)
@@ -108,7 +113,7 @@ my_table3 = my_DB.search('players')
 # print(my_table3.table_name,my_table3.table)
 
 
-#player on a team with “ia” in the team name played less than 200 minutes and made more than 100 passes?
+# player on a team with “ia” in the team name played less than 200 minutes and made more than 100 passes?
 # for index in range(len(players)):
 #     # for items in range(len(players[index])):
 #     int(players[index]['passes'])
@@ -117,11 +122,11 @@ my_table3 = my_DB.search('players')
     #     int(table3[key]['passes'])
 
 
-#player on a team with “ia” in the team name played less than 200 minutes and made more than 100 passes?
-filtered_table3 = table3.filter(lambda x:int(x['passes']) > 100).filter(lambda x:int(x['minutes']) < 200).filter(lambda x:'ia' in x['team'])
+# player on a team with “ia” in the team name played less than 200 minutes and made more than 100 passes?
+filtered_table3 = table3.filter(lambda x: int(x['passes']) > 100).filter(lambda x: int(x['minutes']) < 200).filter(lambda x: 'ia' in x['team'])
 print(type(filtered_table3))
 
-#Select to display the player surname, team, and position
+# Select to display the player surname, team, and position
 
 # print("Test select: only displaying two fields, surname, team, and position
 my_filtered_table3_selected = filtered_table3.select(['surname', 'team', 'position'])
@@ -129,7 +134,7 @@ print(my_filtered_table3_selected)
 print()
 
 
-#The average number of games played for teams ranking below 10 versus teams ranking above or equal 10
+# The average number of games played for teams ranking below 10 versus teams ranking above or equal 10
 rank_below_ten = table4.filter(lambda x: int(x['ranking']) < 10)
 # print(rank_below_ten)
 avg1 = rank_below_ten.aggregate(lambda x: sum(x)/len(x), 'ranking')
@@ -139,9 +144,9 @@ rank_ten_or_more = table4.filter(lambda x:int(x['ranking']) >= 10)
 avg2 = rank_ten_or_more.aggregate(lambda x: sum(x)/len(x), 'ranking')
 print('Avg ranking >= 10: ', avg2)
 
-#The average number of passes made by forwards versus by midfielders
+# The average number of passes made by forwards versus by midfielders
 
-#join table
+# join table
 
 players_ext = table3.join(table4, 'team')
 print(players_ext)
@@ -150,11 +155,25 @@ print('forward avg:', players_ext.filter(lambda x:x['position'] == 'forward').ag
 
 
 # avg_by_mid
-print('mid avg:', players_ext.filter(lambda x:x['position'] == 'midfielder').aggregate(lambda x: sum(x)/len(x), 'passes'))
+print('mid avg:', players_ext.filter(lambda x: x['position'] == 'midfielder').aggregate(lambda x: sum(x)/len(x), 'passes'))
+
+# The average fare paid by passengers in the first class versus in the third class
+# first class avg
+print('First class avg', table5.filter(lambda x: x['class'] == "1").aggregate(lambda x: sum(x)/len(x), 'fare'))
+
+# third class avg
+print('Third class avg', table5.filter(lambda x: x['class'] == "3").aggregate(lambda x: sum(x)/len(x), 'fare'))
 
 
-
-
+# The survival rate of male versus female passengers
+#male rates
+total_male = table5.filter(lambda x: x['gender'] == "M")
+total_female = table5.filter(lambda x: x['gender'] == "F")
+male_survival = total_male.filter(lambda x: x['survived'] == "yes")
+female_survival = total_female.filter(lambda x: x['survived'] == "yes")
+print('Male survival rate: ',len(male_survival.table)/len(total_male.table))
+print('Female survival rate: ',len(female_survival.table)/len(total_female.table))
+#WHY DOT TABLE???
 # print("Test filter: only filtering out cities in Italy")
 # my_table1_filtered = my_table1.filter(lambda x: x['country'] == 'Italy')
 # print(my_table1_filtered)
