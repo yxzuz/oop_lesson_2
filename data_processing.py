@@ -110,7 +110,7 @@ my_DB.insert(table4)
 my_DB.insert(table5)
 my_table1 = my_DB.search('cities')
 my_table3 = my_DB.search('players')
-# print(my_table3.table_name,my_table3.table)
+print(my_table3.table_name,my_table3.table)
 
 
 # player on a team with “ia” in the team name played less than 200 minutes and made more than 100 passes?
@@ -174,6 +174,12 @@ female_survival = total_female.filter(lambda x: x['survived'] == "yes")
 print('Male survival rate: ',len(male_survival.table)/len(total_male.table))
 print('Female survival rate: ',len(female_survival.table)/len(total_female.table))
 #WHY DOT TABLE???
+
+# Find the total number of male passengers embarked at Southampton
+male_southampton = total_male.filter(lambda x: x['embarked'] == "Southampton")
+print('male passengers embarked at Southampton:',len(male_southampton.table))
+
+
 # print("Test filter: only filtering out cities in Italy")
 # my_table1_filtered = my_table1.filter(lambda x: x['country'] == 'Italy')
 # print(my_table1_filtered)
