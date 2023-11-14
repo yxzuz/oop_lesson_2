@@ -28,9 +28,13 @@ def gen_comb_list(list_set):
             for item in list_set[0]:
                 start_list.append([item])
             return start_list
+        # if len(list_set) > 1 then it will do recursive for all lists except last one
+        # print(32,list_set[0:-1])  # in 2nd case it's [[1, 2, 3]]
         comb_list_temp = gen_comb_list_recursive(list_set[0:-1])
-        start_list = []
+
+        start_list = [] # reset so line 27 start_list can store final comb
         for list_item in comb_list_temp:
+            # loop through elements in last list
             for val in list_set[-1]:
                 temp_item = copy.deepcopy(list_item)
                 temp_item.append(val)
@@ -64,7 +68,7 @@ def gen_comb_list(list_set):
 
 
 
-# gen_comb_list([[1, 2, 3], [4, 5], [6, 7, 8]])
+# print(gen_comb_list([[1, 2, 3], [4, 5], [6, 7, 8]]))
 # returns[[1, 4, 6], [2, 4, 6], [3, 4, 6],
 # [1, 5, 6], [2, 5, 6], [3, 5, 6],
 # [1, 4, 7], [2, 4, 7], [3, 4, 7],
