@@ -269,7 +269,7 @@ table2 = Table('countries', countries)
 table3 = Table('players', players)  # NOTE players is list of dict
 table4 = Table('teams', teams)
 table5 = Table('titanic', titanic)
-
+print(table1)
 my_DB = DB()  # create database to store all tables
 my_DB.insert(table1)
 my_DB.insert(table2)
