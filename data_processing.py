@@ -41,7 +41,7 @@ class DB:
     def insert(self, table):
         self.database.append(table)
 
-    def search(self, table_name):
+    def search(self, table_name):  # for calling database by using table
         for table in self.database:
             if table.table_name == table_name:
                 return table
@@ -54,7 +54,7 @@ class Table:
         self.table = table
     
     def join(self, other_table, common_key):
-        joined_table = Table(self.table_name + '_joins_' + other_table.table_name, [])
+        joined_table = Table(self.table_name + '_joins_' + other_table.table_name, []) # rename it and credate new table instance
         for item1 in self.table:
             for item2 in other_table.table:
                 if item1[common_key] == item2[common_key]:
@@ -77,20 +77,20 @@ class Table:
     #         temps.append(float(item1[aggregation_key]))
     #     return function(temps)
 
-    def __is_float(self, element):
+    def __is_float(self, element):  # private method
         if element is None:
-            return False
+            return False  # it's not float
         try:
             float(element)
-            return True
+            return True  # the conversion is successful
         except ValueError:
-            return False
+            return False  # If a ValueError is caught, it returns False, indicating that the element is not a float.
 
     def aggregate(self, function, aggregation_key):
         temps = []
         for item1 in self.table:
             if self.__is_float(item1[aggregation_key]):
-                temps.append(float(item1[aggregation_key]))
+                temps.append(float(item1[aggregation_key]))  # change all item to be float
             else:
                 temps.append(item1[aggregation_key])
         return function(temps)
@@ -105,158 +105,35 @@ class Table:
             temps.append(dict_temp)
         return temps
 
-    def pivot_table(self, keys_to_pivot_list, keys_to_aggregate_list, aggregate_func_list):
+    def pivot_table(self, keys_to_pivot_list, keys_to_aggreagte_list, aggregate_func_list):
 
-        # First create a list of unique values for each key
         unique_values_list = []
-
-        # Here is an example of  unique_values_list for
-        # keys_to_pivot_list = ['embarked', 'gender', 'class']
-        # unique_values_list = [['Southampton', 'Cherbourg', 'Queenstown'], ['M', 'F'], ['3', '2','1']]
-        pivot = []
-        for keys in keys_to_pivot_list:
-            table_selected = self.select(keys)
-            # print(table_selected)
+        for key_item in keys_to_pivot_list:
             temp = []
-            for x in table_selected:
-                for key, value in x.items():
-                    if value not in temp:
-                        temp.append(value)
-            pivot.append(temp)
+            for dict in self.table:
+                if dict[key_item] not in temp:
+                    temp.append(dict[key_item])
+            unique_values_list.append(temp)
 
-        # print('pivot',pivot)
-
-
-
-        # temps =[]
-        #
-        # for keys in keys_to_pivot_list:
-        #     # print(self.select(keys))
-        #     selected_keys = self.select([keys])
-        #     # print(self.select([keys]))
-        #     for i in selected_keys:
-        #         if i.values() not in temps:
-        #     #         temps.append(i.values())
-        #     # print(temps)
-        # # print(self.select(keys_to_pivot_list))
-
-
-        # Get the combination of unique_values_list
-        # You will make use of the function you implemented in Task 2
-
+        # combination of unique value lists
         import combination_gen
+        comb_list = combination_gen.gen_comb_list(unique_values_list)
 
-        # code that makes a call to combination_gen.gen_comb_list
-        # print(combination_gen.gen_comb_list(unique_values_list))
-        # Example output:
-        # [['Southampton', 'M', '3'],
-        #  ['Cherbourg', 'M', '3'],
-        #  ...
-        #  ['Queenstown', 'F', '1']]
+        pivot_table = []
+        # filter each combination
+        for item in comb_list:
+            temp_filter_table = self
+            for i in range(len(item)):
+                temp_filter_table = temp_filter_table.filter(lambda x: x[keys_to_pivot_list[i]] == item[i])
 
-        # code that filters each combination
+            # aggregate over the filtered table
+            aggregate_val_list = []
+            for i in range(len(keys_to_aggreagte_list)):
+                aggregate_val = temp_filter_table.aggregate(aggregate_func_list[i], keys_to_aggreagte_list[i])
+                aggregate_val_list.append(aggregate_val)
+            pivot_table.append([item, aggregate_val_list])
+        return pivot_table
 
-        # for each filter table applies the relevant aggregate functions
-        # to keys to aggregate
-        # the aggregate functions is listed in aggregate_func_list
-        # to keys to aggregate is listed in keys_to_aggregate_list
-        # return a pivot table
-        # print('here',self.table)
-        # print(self.table[0])
-        # for i in self.table[0]:
-        #     if i == 'fare':
-        #         print(self.table[0][i])
-
-        # select keys for aggregation
-        # temps_for_aggregation = []
-        # for key in keys_to_aggregate_list:
-        #     # selected_info = []
-        #     selected = self.select([key])
-        #     # selected_info.append(selected)
-        #     temps_for_aggregation.append(selected)
-        # print(temps_for_aggregation)
-
-        # making pivot combinations
-        unique_pivot = []
-        comb_pivot = combination_gen.gen_comb_list(pivot)
-        # print(comb_pivot)
-        for i in comb_pivot:
-            rn = copy.copy(self)
-            aggregated = []
-            # print(comb_pivot)
-            # aggregation
-            for index in range(len(keys_to_pivot_list)):
-                rn = rn.filter(lambda x: x[keys_to_pivot_list[index]] == i[index])
-                # print(rn)
-
-            for index in range(len(keys_to_aggregate_list)):
-                val = rn.aggregate(aggregate_func_list[index], keys_to_aggregate_list[index])
-                # print(val)
-                aggregated.append(val)
-
-            unique_pivot.append([i,aggregated])
-        return unique_pivot
-
-            # print(j)
-            # for k in j:
-            #     print(j)
-            #         print(i,k)
-            #         rn = rn.filter(lambda x: x[i] == k)
-            #         print(rn)
-
-
-
-
-        # for u in comb_pivot:
-        #     aggregate_value = []
-        #     now = copy.copy(self)
-        #     for kpv in range(len(u)):
-        #         now = now.filter(lambda x: x[keys_to_pivot_list[kpv]] == u[kpv])
-        #         print(now)
-        #     for vpv in range(len(keys_to_aggregate_list)):
-        #         value = now.aggregate(aggregate_func_list[vpv], keys_to_aggregate_list[vpv])
-        #         aggregate_value.append(value)
-        #         list_list.append([u, aggregate_value])
-        # return list_list
-
-
-
-
-
-
-        # aggregation
-        #     aggregated = []
-        #     for i in keys_to_pivot_list:
-        #         for j in unique_pivot:
-        #             for k in j:
-        #                 # print(k)
-        #                 # print(i,k)
-        #                 rn = rn.filter(lambda x: x[i] == k)
-        #                 print(rn)
-
-        # for i in range(len(keys_to_pivot_list)):
-        #     for j in range(len(unique_pivot)):
-        #         for k in range(len(unique_pivot[j])):
-        #             # print(i,unique_pivot[j][k])
-        #             filtered = rn.filter(lambda x: x[keys_to_pivot_list[i]] == unique_pivot[j][k])
-
-        # combine = combination_gen.gen_comb_list(unique_values_list)
-        # list_list = []
-        # for u in combine:
-        #     aggregate_value = []
-        #     now = copy.copy(self)
-        #     for kpv in range(len(u)):
-        #         now = now.filter(lambda x: x[keys_to_pivot_list[kpv]] == u[kpv])
-        #     for vpv in range(len(keys_to_aggregate_list)):
-        #         value = now.aggregate(aggregate_func_list[vpv], keys_to_aggregate_list[vpv])
-        #         aggregate_value.append(value)
-        #         list_list.append([u, aggregate_value])
-        # return list_list
-
-        # my_table3_filtered = my_table3.filter(lambda x: x['EU'] == 'yes').filter(lambda x: x['coastline'] == 'no')
-        # print("Min temp:", my_table3_filtered.aggregate(lambda x: min(x), 'temperature'))
-
-        # print(unique_pivot)
 
 
 
@@ -269,7 +146,7 @@ table2 = Table('countries', countries)
 table3 = Table('players', players)  # NOTE players is list of dict
 table4 = Table('teams', teams)
 table5 = Table('titanic', titanic)
-print(table1)
+# print(table1)
 my_DB = DB()  # create database to store all tables
 my_DB.insert(table1)
 my_DB.insert(table2)
@@ -286,21 +163,23 @@ my_table3 = my_DB.search('players')
 # my_DB.insert(table4)
 my_table5 = my_DB.search('titanic')
 my_pivot = my_table5.pivot_table(['embarked', 'gender', 'class'], ['fare', 'fare', 'fare', 'last'], [lambda x: min(x), lambda x: max(x), lambda x: sum(x)/len(x), lambda x: len(x)])
-print(my_pivot)
+# print(1,my_pivot)
+for i in my_pivot:
+    print(i)
 
 # pivot test case 1
-my_pivot_1 = my_table3.pivot_table(['position'], ['passes', 'shots'], [lambda x: sum(x)/len(x), lambda x: len(x)])
-print(my_pivot_1)
+# my_pivot_1 = my_table3.pivot_table(['position'], ['passes', 'shots'], [lambda x: sum(x)/len(x), lambda x: len(x)])
+# print(my_pivot_1)
 
 # pivot test case 2
-countries_ext = my_table1.join(table2, 'country')
-my_pivot_2 = countries_ext.pivot_table(['EU','coastline'], ['temperature','latitude', 'latitude'], [lambda x: sum(x)/len(x),lambda x: min(x), lambda x: max(x)])
-print(my_pivot_2)
+# countries_ext = my_table1.join(table2, 'country')
+# my_pivot_2 = countries_ext.pivot_table(['EU','coastline'], ['temperature','latitude', 'latitude'], [lambda x: sum(x)/len(x),lambda x: min(x), lambda x: max(x)])
+# print(my_pivot_2)
 
 
 # pivot test case 3
-my_pivot_3 = my_table5.pivot_table(['class', 'gender', 'survived'], ['survived', 'fare'], [lambda x: len(x),lambda x: sum(x)/len(x)])
-print(my_pivot_3)
+# my_pivot_3 = my_table5.pivot_table(['class', 'gender', 'survived'], ['survived', 'fare'], [lambda x: len(x),lambda x: sum(x)/len(x)])
+# print(my_pivot_3)
 # print("Test filter: only filtering out cities in Italy")
 # my_table1_filtered = my_table1.filter(lambda x: x['country'] == 'Italy')
 # print(my_table1_filtered)
@@ -344,3 +223,153 @@ print(my_pivot_3)
 #     if len(my_table1_filtered.table) >= 1:
 #         print(item['country'], my_table1_filtered.aggregate(lambda x: min(x), 'latitude'), my_table1_filtered.aggregate(lambda x: max(x), 'latitude'))
 # print()
+#----------------------------------------------------
+
+
+
+
+#draft pivot table
+# def pivot_table(self, keys_to_pivot_list, keys_to_aggregate_list, aggregate_func_list):
+#
+#     # First create a list of unique values for each key
+#     unique_values_list = []
+
+# Here is an example of  unique_values_list for
+# keys_to_pivot_list = ['embarked', 'gender', 'class']
+# unique_values_list = [['Southampton', 'Cherbourg', 'Queenstown'], ['M', 'F'], ['3', '2','1']]
+# pivot = []
+# for keys in keys_to_pivot_list:
+#     table_selected = self.select(keys)
+#     # print(table_selected)
+#     temp = []
+#     for x in table_selected:
+#         for key, value in x.items():
+#             if value not in temp:
+#                 temp.append(value)
+#     pivot.append(temp)
+
+# print('pivot',pivot)
+
+
+# temps =[]
+#
+# for keys in keys_to_pivot_list:
+#     # print(self.select(keys))
+#     selected_keys = self.select([keys])
+#     # print(self.select([keys]))
+#     for i in selected_keys:
+#         if i.values() not in temps:
+#     #         temps.append(i.values())
+#     # print(temps)
+# # print(self.select(keys_to_pivot_list))
+
+
+# Get the combination of unique_values_list
+# You will make use of the function you implemented in Task 2
+
+import combination_gen
+
+# code that makes a call to combination_gen.gen_comb_list
+# print(combination_gen.gen_comb_list(unique_values_list))
+# Example output:
+# [['Southampton', 'M', '3'],
+#  ['Cherbourg', 'M', '3'],
+#  ...
+#  ['Queenstown', 'F', '1']]
+
+# code that filters each combination
+
+# for each filter table applies the relevant aggregate functions
+# to keys to aggregate
+# the aggregate functions is listed in aggregate_func_list
+# to keys to aggregate is listed in keys_to_aggregate_list
+# return a pivot table
+# print('here',self.table)
+# print(self.table[0])
+# for i in self.table[0]:
+#     if i == 'fare':
+#         print(self.table[0][i])
+
+# select keys for aggregation
+# temps_for_aggregation = []
+# for key in keys_to_aggregate_list:
+#     # selected_info = []
+#     selected = self.select([key])
+#     # selected_info.append(selected)
+#     temps_for_aggregation.append(selected)
+# print(temps_for_aggregation)
+
+# making pivot combinations
+# unique_pivot = []
+# comb_pivot = combination_gen.gen_comb_list(pivot)
+# # print(comb_pivot)
+# for i in comb_pivot:
+#     rn = copy.copy(self)
+#     aggregated = []
+#     # print(comb_pivot)
+#     # aggregation
+#     for index in range(len(keys_to_pivot_list)):
+#         rn = rn.filter(lambda x: x[keys_to_pivot_list[index]] == i[index])
+#         # print(rn)
+#
+#     for index in range(len(keys_to_aggregate_list)):
+#         val = rn.aggregate(aggregate_func_list[index], keys_to_aggregate_list[index])
+#         # print(val)
+#         aggregated.append(val)
+#
+#     unique_pivot.append([i,aggregated])
+# return unique_pivot
+
+# print(j)
+# for k in j:
+#     print(j)
+#         print(i,k)
+#         rn = rn.filter(lambda x: x[i] == k)
+#         print(rn)
+
+
+# for u in comb_pivot:
+#     aggregate_value = []
+#     now = copy.copy(self)
+#     for kpv in range(len(u)):
+#         now = now.filter(lambda x: x[keys_to_pivot_list[kpv]] == u[kpv])
+#         print(now)
+#     for vpv in range(len(keys_to_aggregate_list)):
+#         value = now.aggregate(aggregate_func_list[vpv], keys_to_aggregate_list[vpv])
+#         aggregate_value.append(value)
+#         list_list.append([u, aggregate_value])
+# return list_list
+
+# aggregation
+#     aggregated = []
+#     for i in keys_to_pivot_list:
+#         for j in unique_pivot:
+#             for k in j:
+#                 # print(k)
+#                 # print(i,k)
+#                 rn = rn.filter(lambda x: x[i] == k)
+#                 print(rn)
+
+# for i in range(len(keys_to_pivot_list)):
+#     for j in range(len(unique_pivot)):
+#         for k in range(len(unique_pivot[j])):
+#             # print(i,unique_pivot[j][k])
+#             filtered = rn.filter(lambda x: x[keys_to_pivot_list[i]] == unique_pivot[j][k])
+
+# combine = combination_gen.gen_comb_list(unique_values_list)
+# list_list = []
+# for u in combine:
+#     aggregate_value = []
+#     now = copy.copy(self)
+#     for kpv in range(len(u)):
+#         now = now.filter(lambda x: x[keys_to_pivot_list[kpv]] == u[kpv])
+#     for vpv in range(len(keys_to_aggregate_list)):
+#         value = now.aggregate(aggregate_func_list[vpv], keys_to_aggregate_list[vpv])
+#         aggregate_value.append(value)
+#         list_list.append([u, aggregate_value])
+# return list_list
+
+# my_table3_filtered = my_table3.filter(lambda x: x['EU'] == 'yes').filter(lambda x: x['coastline'] == 'no')
+# print("Min temp:", my_table3_filtered.aggregate(lambda x: min(x), 'temperature'))
+
+# print(unique_pivot)
